@@ -3,16 +3,16 @@ from swap import SWAP
 # img2 = 'images/dadario.jpg'
 # img1 = 'images/a_wallis_.jpg'
 
-img2 = 'images/bradley_cooper.jpg'
-img1 = 'images/tom-cruise-exp.jpg'
+img1 = 'images/bradley_cooper.jpg'
+img2 = 'images/scarlet.jpg'
 
 SWAP.enable_visualization()
 swap = SWAP(img1, img2)
 
-SWAP.enable_visualization(False)
+SWAP.enable_visualization()
 swap.first_face_landmarks()
 
-SWAP.enable_visualization(False)
+SWAP.enable_visualization()
 swap.second_face_landmarks()
 
 SWAP.enable_visualization(False)
