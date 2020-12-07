@@ -2,10 +2,9 @@ import cv2
 import numpy as np
 import dlib
 from utils.image_utilities import ImageUtilities
-from collections import namedtuple
 
 
-class SWAP:
+class SWAP_T:
 
     visualize = False
 
@@ -16,13 +15,14 @@ class SWAP:
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor('utils/shape_predictor_68_face_landmarks.dat')
         self.imgStack = ImageUtilities()
-        self.landmarks_points = ()
+        self.landmarks_points = {}
         self.mask1 = np.zeros_like(self.img1_gray)
         self.mask2 = np.zeros_like(self.img2_gray)
-        self.convex_hull = ()
-        # self.index_triangles = []
-        # self.destination_img = np.zeros(self.img2.shape, np.uint8)
-        # self.result = None
+        self.convex_hull = {}
+        self.index_triangles = []
+        self.destination_img = np.zeros(self.img2.shape, np.uint8)
+        self.result = None
+        self.font = cv2.FONT_HERSHEY_SIMPLEX
 
     @classmethod
     def enable_visualization(cls, show=True):
@@ -44,11 +44,10 @@ class SWAP:
 
     def show_images(self):
 
-        # row_1 = [self.img1, self.img2, self.result]
-        row_1 = [self.img1, self.img2]
+        row_1 = [self.img1, self.img2, self.result]
         # row_2 = [self.mask1, self.mask2]
 
-        stacked_image = self.imgStack.stack_images(0.8, (row_1))
+        stacked_image = self.imgStack.stack_images(0.75, (row_1))
         cv2.imshow('Stacked Image', stacked_image)
         cv2.imwrite('images/result.jpg', stacked_image)
 
@@ -67,56 +66,48 @@ class SWAP:
 
         return landmarks_points
 
-    def delaunay_test(self):
-        rect = cv2.boundingRect(self.convex_hull['first'])
+    def first_face_landmarks(self):
 
-        # draw bounding rectangle around convex hull
-        # x, y, w, h = rect
-        # cv2.rectangle(self.img1, (x, y), (x+w, y+h), (0, 0, 255))
+        landmarks_points = self.__face_landmarks(self.img1_gray)
+        self.landmarks_points['first'] = landmarks_points
 
-        #
-        subdiv = cv2.Subdiv2D()
-        subdiv.initDelaunay(rect)
+        if self.visualize:
 
-        subdiv.insert(self.landmarks_points['first'])
-        triangles = np.array(subdiv.getTriangleList(), np.int32)
+            for i, landmarks_point in enumerate(landmarks_points):
+                self.img1 = cv2.circle(self.img1, (landmarks_point[0], landmarks_point[1]), 3, (0, 255, 0), -1)
+                self.img1 = cv2.putText(self.img1, str(i), (landmarks_point[0], landmarks_point[1]), self.font, 1, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+                if 5 == i:
+                    break
 
-        triangle = triangles[0]
+    def second_face_landmarks(self):
 
-        pt1 = (triangle[0], triangle[1])
-        pt2 = (triangle[2], triangle[3])
-        pt3 = (triangle[4], triangle[5])
+        landmarks_points = self.__face_landmarks(self.img2_gray)
+        self.landmarks_points['second'] = landmarks_points
 
-        cv2.line(self.img1, pt1, pt2, (0, 255, 0), 1)
-        cv2.line(self.img1, pt2, pt3, (0, 255, 0), 1)
-        cv2.line(self.img1, pt3, pt1, (0, 255, 0), 1)
-        ############################################
+        if self.visualize:
+            for i, landmarks_point in enumerate(landmarks_points):
+                self.img2 = cv2.circle(self.img2, (landmarks_point[0], landmarks_point[1]), 3, (0, 0, 255), -1)
+                self.img2 = cv2.putText(self.img2, str(i), (landmarks_point[0], landmarks_point[1]), self.font, 1, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+                if 5 == i:
+                    break
 
-        rect2 = cv2.boundingRect(self.convex_hull['second'])
+    def first_convex_hull(self):
 
-        # draw bounding rectangle around convex hull
-        # x, y, w, h = rect2
-        # cv2.rectangle(self.img2, (x, y), (x + w, y + h), (0, 0, 255))
+        self.convex_hull['first'] = cv2.convexHull(np.array(self.landmarks_points['first'], np.int32))
+        cv2.fillConvexPoly(self.mask1, self.convex_hull['first'], 255)
+        self.mask1 = cv2.bitwise_and(self.img1, self.img1, mask=self.mask1)
 
-        subdiv2 = cv2.Subdiv2D()
-        subdiv2.initDelaunay(rect2)
+        if self.visualize:
+            cv2.polylines(self.img1, [self.convex_hull['first']], True, (0, 255, 0))
 
-        subdiv2.insert(self.landmarks_points['second'])
-        triangles2 = np.array(subdiv2.getTriangleList(), np.int32)
+    def second_convex_hull(self):
 
-        triangle2 = triangles2[0]
+        self.convex_hull['second'] = cv2.convexHull(np.array(self.landmarks_points['second'], np.int32))
+        cv2.fillConvexPoly(self.mask2, self.convex_hull['second'], 255)
+        self.mask2 = cv2.bitwise_and(self.img2, self.img2, mask=self.mask2)
 
-        pt1 = (triangle2[0], triangle2[1])
-        pt2 = (triangle2[2], triangle2[3])
-        pt3 = (triangle2[4], triangle2[5])
-
-        cv2.line(self.img2, pt1, pt2, (0, 255, 0), 1)
-        cv2.line(self.img2, pt2, pt3, (0, 255, 0), 1)
-        cv2.line(self.img2, pt3, pt1, (0, 255, 0), 1)
-
-        self.show_images_test()
-
-
+        if self.visualize:
+            cv2.polylines(self.img2, [self.convex_hull['second']], True, (0, 0, 255))
 
     def delaunay_triangle_1(self):
         rect = cv2.boundingRect(self.convex_hull['first'])
@@ -124,6 +115,8 @@ class SWAP:
 
         subdiv.insert(self.landmarks_points['first'])
         triangles = np.array(subdiv.getTriangleList(), np.int32)
+
+        print(self.landmarks_points['first'][0])
 
         for triangle in triangles:
             pt1 = (triangle[0], triangle[1])
@@ -138,6 +131,7 @@ class SWAP:
                 cv2.line(self.img1, pt3, pt1, (0, 255, 0), 1)
 
     def delaunay_triangle_2(self):
+
         rect = cv2.boundingRect(self.convex_hull['second'])
         subdiv = cv2.Subdiv2D(rect)
 
@@ -238,28 +232,3 @@ class SWAP:
                 triangle.append(num)
 
         self.index_triangles.append(triangle)
-
-    def swap(self):
-
-        # landmark points for faces
-        LandmarkPoints = namedtuple('LandmarkPoints', ['first', 'second'])
-        self.landmarks_points = LandmarkPoints(self.__face_landmarks(self.img1_gray), self.__face_landmarks(self.img2_gray))
-
-        # convex hull for faces
-        ConvexHull = namedtuple('ConvexHull', ['first', 'second'])
-        self.convex_hull = ConvexHull(cv2.convexHull(np.array(self.landmarks_points.first, np.int32)), cv2.convexHull(np.array(self.landmarks_points.second, np.int32)))
-
-        # print(self.convex_hull.first)
-
-        self.convex_hull._replace(first=[[[1, 2]], [[4, 5]]])
-
-        # print(self.convex_hull.first)
-
-        Point = namedtuple('Point', ['x', 'y'])
-        p = Point(11, y=22)
-
-        print(p)
-
-        p = p._replace(x=255)
-
-        print(p)

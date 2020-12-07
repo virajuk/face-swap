@@ -1,8 +1,10 @@
-from swap import SWAP
+from utils.swap import SWAP
 
-img2 = 'images/bradley_cooper.jpg'
-# img2 = 'images/bradley_cooper_.jpg'
-img1 = 'images/jim_carrey.jpg'
+# img1 = 'images/bradley_cooper.jpg'
+# img2 = 'images/jim_carrey.jpg'
+
+img1 = 'images/lenardo.jpg'
+img2 = 'images/tom-cruise-exp.jpg'
 
 SWAP.enable_visualization()
 swap = SWAP(img1, img2)
@@ -20,4 +22,4 @@ swap.swap()
 #
 # swap.delaunay_test()
 
-# swap.show_images()
+swap.show_images()
