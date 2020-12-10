@@ -9,9 +9,9 @@ img2 = 'images/tom-2.jpg'
 SWAP.enable_visualization()
 swap = SWAP(img1, img2)
 
-# swap.swap()
+swap.swap()
 
-swap.test()
+# swap.test()
 
 # print(swap.img1)
 # swap.first_face_landmarks()

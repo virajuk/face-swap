@@ -10,7 +10,7 @@ import time
 class SWAP:
 
     visualize = False
-    img_path = '/home/viraj-uk/HUSTLE/FACE_SWAPPING/images/write/2'
+    img_path = '/home/viraj-uk/HUSTLE/FACE_SWAPPING/images/write/1'
 
     def __init__(self, img1, img2):
         self.img1, self.img2 = self.init_images(img1, img2)
@@ -49,12 +49,12 @@ class SWAP:
 
     def show_images(self):
 
-        row_1 = [self.img1, self.img2, self.mask1]
-        # row_1 = [self.img1, self.img2]
+        # row_1 = [self.img1, self.img2, self.mask1, self.intermediate]
+        row_1 = [self.img1, self.img2]
         # row_2 = [self.mask1, self.mask2]
 
         stacked_image = self.imgStack.stack_images(0.5, (row_1))
-        cv2.imshow('Stacked Image', stacked_image)
+        # cv2.imshow('Stacked Image', stacked_image)
         cv2.imwrite(os.path.join(self.img_path, 'result.jpg'), stacked_image)
 
         cv2.waitKey(0)
@@ -84,28 +84,28 @@ class SWAP:
 
         return landmarks_points
 
-    def draw_face_landmarks(self, gray):
-        faces = self.detector(gray)
-        landmarks_points = []
-        for face in faces:
-            landmarks = self.predictor(gray, face)
-            for n in range(0, 68):
-                x = landmarks.part(n).x
-                y = landmarks.part(n).y
-                landmarks_points.append((x, y))
-
-
-                self.img1 = cv2.circle(self.img1, (x, y), 5, (0, 0, 255), -1)
-                row_1 = [self.img1]
-                stacked_image = self.imgStack.stack_images(0.5, (row_1))
-                cv2.imwrite(os.path.join(self.img_path, str(n) + ".jpg"), stacked_image)
+    # def draw_face_landmarks(self, gray):
+    #     faces = self.detector(gray)
+    #     landmarks_points = []
+    #     for face in faces:
+    #         landmarks = self.predictor(gray, face)
+    #         for n in range(0, 68):
+    #             x = landmarks.part(n).x
+    #             y = landmarks.part(n).y
+    #             landmarks_points.append((x, y))
+    #
+    #
+    #             self.img1 = cv2.circle(self.img1, (x, y), 5, (0, 0, 255), -1)
+    #             row_1 = [self.img1]
+    #             stacked_image = self.imgStack.stack_images(0.5, (row_1))
+    #             cv2.imwrite(os.path.join(self.img_path, str(n) + ".jpg"), stacked_image)
 
 
         # return landmarks_points
 
-    def test(self):
-
-        self.draw_face_landmarks(self.img1_gray)
+    # def test(self):
+    #
+    #     self.draw_face_landmarks(self.img1_gray)
 
     # def new_face_landmarks(self, gray):
     #     faces = self.detector(gray)
@@ -206,78 +206,78 @@ class SWAP:
     #             cv2.line(self.img2, pt2, pt3, (0, 0, 255), 1)
     #             cv2.line(self.img2, pt3, pt1, (0, 0, 255), 1)
 
-    def combine_triangle(self):
+    # def combine_triangle(self):
+    #
+    #     for index_triangle in self.index_triangles:
+    #
+    #         tr1_pt1 = self.landmarks_points['first'][index_triangle[0]]
+    #         tr1_pt2 = self.landmarks_points['first'][index_triangle[1]]
+    #         tr1_pt3 = self.landmarks_points['first'][index_triangle[2]]
+    #         triangle1 = np.array([tr1_pt1, tr1_pt2, tr1_pt3], np.int32)
+    #
+    #         rect1 = cv2.boundingRect(triangle1)
+    #         (x, y, w, h) = rect1
+    #         cropped_triangle = self.img1[y: y+h, x:x+w]
+    #         cropped_tr1_mask = np.zeros((h, w), np.int8)
+    #
+    #         points = np.array([[tr1_pt1[0]-x, tr1_pt1[1]-y],
+    #                           [tr1_pt2[0]-x, tr1_pt2[1]-y],
+    #                           [tr1_pt3[0]-x, tr1_pt3[1]-y]], np.int32)
+    #         cv2.fillConvexPoly(cropped_tr1_mask , points, 255)
+    #         cropped_triangle = cv2.bitwise_and(cropped_triangle, cropped_triangle, mask=cropped_tr1_mask)
+    #
+    #         tr2_pt1 = self.landmarks_points['second'][index_triangle[0]]
+    #         tr2_pt2 = self.landmarks_points['second'][index_triangle[1]]
+    #         tr2_pt3 = self.landmarks_points['second'][index_triangle[2]]
+    #         triangle2 = np.array([tr2_pt1, tr2_pt2, tr2_pt3], np.int32)
+    #
+    #         rect2 = cv2.boundingRect(triangle2)
+    #         (x, y, w, h) = rect2
+    #
+    #         cropped_tr2_mask = np.zeros((h, w), np.int8)
+    #
+    #         points2 = np.array([[tr2_pt1[0] - x, tr2_pt1[1] - y],
+    #                            [tr2_pt2[0] - x, tr2_pt2[1] - y],
+    #                            [tr2_pt3[0] - x, tr2_pt3[1] - y]], np.int32)
+    #
+    #         cv2.fillConvexPoly(cropped_tr2_mask, points2, 255)
+    #
+    #
+    #
+    #         # Warp triangles
+    #         points = np.float32(points)
+    #         points2 = np.float32(points2)
+    #         M = cv2.getAffineTransform(points, points2)
+    #         warped_triangle = cv2.warpAffine(cropped_triangle, M, (w, h))
+    #         warped_triangle = cv2.bitwise_and(warped_triangle, warped_triangle, mask=cropped_tr2_mask)
+    #
+    #         # # Reconstructing destination face
+    #         img2_new_face_rect_area = self.destination_img[y: y + h, x: x + w]
+    #         img2_new_face_rect_area_gray = cv2.cvtColor(img2_new_face_rect_area, cv2.COLOR_BGR2GRAY)
+    #         _, mask_triangles_designed = cv2.threshold(img2_new_face_rect_area_gray, 1, 255, cv2.THRESH_BINARY_INV)
+    #         warped_triangle = cv2.bitwise_and(warped_triangle, warped_triangle, mask=mask_triangles_designed)
+    #
+    #         img2_new_face_rect_area = cv2.add(img2_new_face_rect_area, warped_triangle)
+    #         self.destination_img[y: y + h, x: x + w] = img2_new_face_rect_area
 
-        for index_triangle in self.index_triangles:
-
-            tr1_pt1 = self.landmarks_points['first'][index_triangle[0]]
-            tr1_pt2 = self.landmarks_points['first'][index_triangle[1]]
-            tr1_pt3 = self.landmarks_points['first'][index_triangle[2]]
-            triangle1 = np.array([tr1_pt1, tr1_pt2, tr1_pt3], np.int32)
-
-            rect1 = cv2.boundingRect(triangle1)
-            (x, y, w, h) = rect1
-            cropped_triangle = self.img1[y: y+h, x:x+w]
-            cropped_tr1_mask = np.zeros((h, w), np.int8)
-
-            points = np.array([[tr1_pt1[0]-x, tr1_pt1[1]-y],
-                              [tr1_pt2[0]-x, tr1_pt2[1]-y],
-                              [tr1_pt3[0]-x, tr1_pt3[1]-y]], np.int32)
-            cv2.fillConvexPoly(cropped_tr1_mask , points, 255)
-            cropped_triangle = cv2.bitwise_and(cropped_triangle, cropped_triangle, mask=cropped_tr1_mask)
-
-            tr2_pt1 = self.landmarks_points['second'][index_triangle[0]]
-            tr2_pt2 = self.landmarks_points['second'][index_triangle[1]]
-            tr2_pt3 = self.landmarks_points['second'][index_triangle[2]]
-            triangle2 = np.array([tr2_pt1, tr2_pt2, tr2_pt3], np.int32)
-
-            rect2 = cv2.boundingRect(triangle2)
-            (x, y, w, h) = rect2
-
-            cropped_tr2_mask = np.zeros((h, w), np.int8)
-
-            points2 = np.array([[tr2_pt1[0] - x, tr2_pt1[1] - y],
-                               [tr2_pt2[0] - x, tr2_pt2[1] - y],
-                               [tr2_pt3[0] - x, tr2_pt3[1] - y]], np.int32)
-
-            cv2.fillConvexPoly(cropped_tr2_mask, points2, 255)
-
-
-
-            # Warp triangles
-            points = np.float32(points)
-            points2 = np.float32(points2)
-            M = cv2.getAffineTransform(points, points2)
-            warped_triangle = cv2.warpAffine(cropped_triangle, M, (w, h))
-            warped_triangle = cv2.bitwise_and(warped_triangle, warped_triangle, mask=cropped_tr2_mask)
-
-            # # Reconstructing destination face
-            img2_new_face_rect_area = self.destination_img[y: y + h, x: x + w]
-            img2_new_face_rect_area_gray = cv2.cvtColor(img2_new_face_rect_area, cv2.COLOR_BGR2GRAY)
-            _, mask_triangles_designed = cv2.threshold(img2_new_face_rect_area_gray, 1, 255, cv2.THRESH_BINARY_INV)
-            warped_triangle = cv2.bitwise_and(warped_triangle, warped_triangle, mask=mask_triangles_designed)
-
-            img2_new_face_rect_area = cv2.add(img2_new_face_rect_area, warped_triangle)
-            self.destination_img[y: y + h, x: x + w] = img2_new_face_rect_area
-
-    def final_show(self):
-        img2_face_mask = np.zeros_like(self.img2_gray)
-        img2_head_mask = cv2.fillConvexPoly(img2_face_mask, self.convex_hull['second'], 255)
-        img2_face_mask = cv2.bitwise_not(img2_head_mask)
-
-        img2_head_noface = cv2.bitwise_and(self.img2, self.img2, mask=img2_face_mask)
-        result = cv2.add(img2_head_noface, self.destination_img)
-
-        (x, y, w, h) = cv2.boundingRect(self.convex_hull['second'])
-        center_face2 = (int((x + x + w) / 2), int((y + y + h) / 2))
-
-        seamlessclone = cv2.seamlessClone(result, self.img2, img2_head_mask, center_face2, cv2.NORMAL_CLONE)
-
-        scale_percent = 40  # percent of original size
-        width = int(seamlessclone.shape[1] * scale_percent / 100)
-        height = int(seamlessclone.shape[0] * scale_percent / 100)
-        dim = (width, height)
-        self.result = cv2.resize(seamlessclone, dim, interpolation=cv2.INTER_AREA)
+    # def final_show(self):
+    #     img2_face_mask = np.zeros_like(self.img2_gray)
+    #     img2_head_mask = cv2.fillConvexPoly(img2_face_mask, self.convex_hull['second'], 255)
+    #     img2_face_mask = cv2.bitwise_not(img2_head_mask)
+    #
+    #     img2_head_noface = cv2.bitwise_and(self.img2, self.img2, mask=img2_face_mask)
+    #     result = cv2.add(img2_head_noface, self.destination_img)
+    #
+    #     (x, y, w, h) = cv2.boundingRect(self.convex_hull['second'])
+    #     center_face2 = (int((x + x + w) / 2), int((y + y + h) / 2))
+    #
+    #     seamlessclone = cv2.seamlessClone(result, self.img2, img2_head_mask, center_face2, cv2.NORMAL_CLONE)
+    #
+    #     scale_percent = 40  # percent of original size
+    #     width = int(seamlessclone.shape[1] * scale_percent / 100)
+    #     height = int(seamlessclone.shape[0] * scale_percent / 100)
+    #     dim = (width, height)
+    #     self.result = cv2.resize(seamlessclone, dim, interpolation=cv2.INTER_AREA)
 
     # def __extract_index_points(self, pts, landmarks_points):
     #     triangle = []
@@ -336,56 +336,28 @@ class SWAP:
             rect1 = cv2.boundingRect(triangle1)
             (x, y, w, h) = rect1
 
-            # print(x, y, w, h)
-            # print(w, h)
-
             cropped_triangle = self.img1[y: y + h, x:x + w]
-            # points = np.array([[[]]], np.int32)
             points = np.array([[self.landmarks_points.first[pt1], self.landmarks_points.first[pt2], self.landmarks_points.first[pt3]]], np.int32)
-            # print(points)
 
-            # print(points_)
-
-            # print(self.landmarks_points.first[pt1], self.landmarks_points.first[pt2], self.landmarks_points.first[pt3])
-            # print('x = ', x)
-            # print('y = ', y)
-
-            # cropped_triangle = self.img1[y: y + h, x:x + w]
-
-            # points = np.array([[self.landmarks_points.first[pt1][0] - x, self.landmarks_points.first[pt1][1] - y],
-            #                    [self.landmarks_points.first[pt2][0] - x, self.landmarks_points.first[pt2][1] - y],
-            #                    [self.landmarks_points.first[pt3][0] - x, self.landmarks_points.first[pt3][1] - y]], np.int32)
-            #
-            # print(points)
-
-            cv2.line(self.img1, self.landmarks_points.first[pt1], self.landmarks_points.first[pt2], color, 2)
-            cv2.line(self.img1, self.landmarks_points.first[pt2], self.landmarks_points.first[pt3], color, 2)
-            cv2.line(self.img1, self.landmarks_points.first[pt3], self.landmarks_points.first[pt1], color, 2)
+            cv2.line(self.img1, self.landmarks_points.first[pt1], self.landmarks_points.first[pt2], color, 1)
+            cv2.line(self.img1, self.landmarks_points.first[pt2], self.landmarks_points.first[pt3], color, 1)
+            cv2.line(self.img1, self.landmarks_points.first[pt3], self.landmarks_points.first[pt1], color, 1)
 
             # cv2.rectangle(self.img1, (x,y), (x+w, y+h), (255, 255, 0), 2)
 
             #################################################################
             triangle2 = np.array([self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], self.landmarks_points.second[pt3]], np.int32)
-            # print(triangle2)
             rect2 = cv2.boundingRect(triangle2)
             (x, y, w, h) = rect2
 
-            # points2 = np.array([[self.landmarks_points.second[pt1][0] - x, self.landmarks_points.second[pt1][1] - y],
-            #                    [self.landmarks_points.second[pt2][0] - x, self.landmarks_points.second[pt2][1] - y],
-            #                    [self.landmarks_points.second[pt3][0] - x, self.landmarks_points.second[pt3][1] - y]], np.int32)
-            #
-            # print(points2)
+            points2 = np.array([[self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], self.landmarks_points.second[pt3]]], np.int32)
 
-            # print(self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], self.landmarks_points.second[pt3])
-            points2 = np.array([self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], self.landmarks_points.second[pt3]], np.int32)
-
-            # print(points2)
-
-            cv2.line(self.img2, self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], color, 2)
-            cv2.line(self.img2, self.landmarks_points.second[pt2], self.landmarks_points.second[pt3], color, 2)
-            cv2.line(self.img2, self.landmarks_points.second[pt3], self.landmarks_points.second[pt1], color, 2)
+            cv2.line(self.img2, self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], color, 1)
+            cv2.line(self.img2, self.landmarks_points.second[pt2], self.landmarks_points.second[pt3], color, 1)
+            cv2.line(self.img2, self.landmarks_points.second[pt3], self.landmarks_points.second[pt1], color, 1)
 
             M = cv2.getAffineTransform(np.float32(points), np.float32(points2))
+            # print(M)
             warped_triangle = cv2.warpAffine(cropped_triangle, M, (w, h))
 
             # print(w, h)
@@ -413,7 +385,10 @@ class SWAP:
 
             # print(mask.shape)
             cv2.bitwise_and(self.img1, self.img1, mask=self.mask1)
-            # self.intermediate = cv2.bitwise_and(self.img1, self.img1, mask=self.mask1)
+            # self.intermediate = warped_triangle
+
+            # cv2.imwrite(os.path.join(self.img_path, str(key)+'result.jpg'), warped_triangle)
+            # cv2.imwrite(os.path.join(self.img_path, str(key)+'cropped.jpg'), cropped_triangle)
 
             # mask = cropped_triangle
             # add_to_mask = cropped_triangle.copy()
@@ -447,6 +422,6 @@ class SWAP:
             self.show_animation(key)
 
             if 110 == key:
-                cv2.destroyAllWindows()
+                # cv2.destroyAllWindows()
                 break
 
