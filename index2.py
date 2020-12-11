@@ -9,7 +9,7 @@ img2 = 'images/tom-2.jpg'
 SWAP.enable_visualization()
 swap = SWAP(img1, img2)
 
-swap.swap()
+swap.my()
 
 # swap.test()
 
