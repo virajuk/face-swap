@@ -10,7 +10,7 @@ import time
 class SWAP:
 
     visualize = False
-    img_path = '/home/viraj-uk/HUSTLE/FACE_SWAPPING/images'
+    img_path = '/home/viraj-uk/HUSTLE/FACE_SWAPPING/images/write/4'
 
     def __init__(self, img1, img2):
         self.img1, self.img2 = self.init_images(img1, img2)
@@ -332,56 +332,57 @@ class SWAP:
             pt1, pt2, pt3 = self.ordered_triangles[key]
             points = np.array([[self.landmarks_points.first[pt1], self.landmarks_points.first[pt2], self.landmarks_points.first[pt3]]], np.int32)
 
-            cv2.line(self.img1, self.landmarks_points.first[pt1], self.landmarks_points.first[pt2], color, 1)
-            cv2.line(self.img1, self.landmarks_points.first[pt2], self.landmarks_points.first[pt3], color, 1)
-            cv2.line(self.img1, self.landmarks_points.first[pt3], self.landmarks_points.first[pt1], color, 1)
+            # cv2.line(self.img1, self.landmarks_points.first[pt1], self.landmarks_points.first[pt2], color, 1)
+            # cv2.line(self.img1, self.landmarks_points.first[pt2], self.landmarks_points.first[pt3], color, 1)
+            # cv2.line(self.img1, self.landmarks_points.first[pt3], self.landmarks_points.first[pt1], color, 1)
 
             points2 = np.array([[self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], self.landmarks_points.second[pt3]]], np.int32)
 
-            cv2.line(self.result, self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], color, 1)
-            cv2.line(self.result, self.landmarks_points.second[pt2], self.landmarks_points.second[pt3], color, 1)
-            cv2.line(self.result, self.landmarks_points.second[pt3], self.landmarks_points.second[pt1], color, 1)
+            # cv2.line(self.result, self.landmarks_points.second[pt1], self.landmarks_points.second[pt2], color, 1)
+            # cv2.line(self.result, self.landmarks_points.second[pt2], self.landmarks_points.second[pt3], color, 1)
+            # cv2.line(self.result, self.landmarks_points.second[pt3], self.landmarks_points.second[pt1], color, 1)
 
             M = cv2.getAffineTransform(np.float32(points), np.float32(points2))
 
             mask1 = np.zeros((self.img1.shape[0], self.img1.shape[1]), np.uint8)
             mask1 = cv2.fillPoly(mask1, points, (255))
 
-            mask2 = cv2.warpAffine(mask1, M, (self.img1.shape[1], self.img1.shape[0]))
+            # mask2 = cv2.warpAffine(mask1, M, (self.img1.shape[1], self.img1.shape[0]))
             warped = cv2.warpAffine(self.img1, M, (self.img1.shape[1], self.img1.shape[0]))
+
+            mask2 = np.zeros((warped.shape[0], warped.shape[1]), np.uint8)
+            mask2 = cv2.fillPoly(mask2, points2, (255))
+
+            # mask2 = cv2.cvtColor(mask2, cv2.COLOR_BGR2GRAY)
+            # cv2.imshow('mask2', mask2)
+
             # print(mask2.shape)
+            # mask2 = cv2.cvtColor(cv2.fillPoly(warped, points2, (255)), cv2.COLOR_BGR2GRAY)
 
-            # cv2.imshow('temp', mask1)
-            # cv2.imshow('temp2', mask2)
-            # cv2.imshow('warped', warped)
 
-            # mask1 = cv2.cvtColor(mask1, cv2.COLOR_GRAY2RGB)
-
-            # mask1[mask1 > 0] = 255
-            # print(type(mask1))
-            # print(mask1.shape)
-            # print(self.img1.shape)
 
             # self.img1 = cv2.bitwise_and(self.img1, self.img1, mask=mask1)
             warped_mask = cv2.bitwise_and(warped, warped, mask=mask2)
 
+            # cv2.imshow('warped_mask', warped_mask)
 
+            self.img2 = cv2.add(self.img2, warped_mask)
+            # self.img2 = cv2.addWeighted(warped_mask, 0.9999, self.img2, 0.99, 0)
+            # self.img2 = cv2.bitwise_or(self.img2, warped_mask)
 
-            # self.img2 = cv2.add(self.img2, warped_mask)
-            self.img2 = cv2.bitwise_or(self.img2, warped_mask)
-
-            # self.show2 = cv2.warpAffine(self.mask1, M, (self.mask2.shape[1], self.mask2.shape[0]))
-
-            if 2 == key:
+            if 90 == key:
                 pass
                 # break
 
+            # row_1 = [self.img1, self.result, self.img2]
 
+            # stacked_image = self.imgStack.stack_images(0.5, (row_1))
+            # cv2.imwrite(os.path.join(self.img_path, str(key)+'.jpg'), stacked_image)
 
         row_1 = [self.img1, self.result, self.img2]
 
         stacked_image = self.imgStack.stack_images(0.5, (row_1))
-        cv2.imwrite(os.path.join(self.img_path, 'result.jpg'), stacked_image)
+        # cv2.imwrite(os.path.join(self.img_path, 'result.jpg'), stacked_image)
         cv2.imshow('Stacked Image', stacked_image)
 
         cv2.waitKey(0)
