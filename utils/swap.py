@@ -10,7 +10,7 @@ import time
 class SWAP:
 
     visualize = False
-    img_path = '/home/viraj-uk/HUSTLE/FACE_SWAPPING/images/write/4'
+    img_path = '/home/viraj-uk/HUSTLE/FACE_SWAPPING/images'
 
     def __init__(self, img1, img2):
         self.img1, self.img2 = self.init_images(img1, img2)
@@ -28,6 +28,7 @@ class SWAP:
         # self.destination_img = np.zeros(self.img2.shape, np.uint8)
         self.result = self.img2.copy()
         self.intermediate = self.img1.copy()
+        self.img2_copy = self.img2.copy()
 
     @classmethod
     def enable_visualization(cls, show=True):
@@ -325,6 +326,11 @@ class SWAP:
         self.landmarks_points = LandmarkPoints(self.__face_landmarks(self.img1_gray), self.__face_landmarks(self.img2_gray))
 
         mask1, mask2 = None, None
+
+        # accumulate_warped = np.zeros_like((self.img1.shape[0], self.img1.shape[1]), np.uint8)
+        accumulate_warped = np.zeros_like(self.img2)
+        accumulate_mask = np.zeros((self.img2.shape[0], self.img2.shape[1]), np.uint8)
+
         self.first_order_triangles()
         color = (0, 255, 0)
         for key in self.ordered_triangles:
@@ -344,8 +350,8 @@ class SWAP:
 
             M = cv2.getAffineTransform(np.float32(points), np.float32(points2))
 
-            mask1 = np.zeros((self.img1.shape[0], self.img1.shape[1]), np.uint8)
-            mask1 = cv2.fillPoly(mask1, points, (255))
+            # mask1 = np.zeros((self.img1.shape[0], self.img1.shape[1]), np.uint8)
+            # mask1 = cv2.fillPoly(mask1, points, (255))
 
             # mask2 = cv2.warpAffine(mask1, M, (self.img1.shape[1], self.img1.shape[0]))
             warped = cv2.warpAffine(self.img1, M, (self.img1.shape[1], self.img1.shape[0]))
@@ -353,33 +359,55 @@ class SWAP:
             mask2 = np.zeros((warped.shape[0], warped.shape[1]), np.uint8)
             mask2 = cv2.fillPoly(mask2, points2, (255))
 
-            # mask2 = cv2.cvtColor(mask2, cv2.COLOR_BGR2GRAY)
-            # cv2.imshow('mask2', mask2)
-
-            # print(mask2.shape)
-            # mask2 = cv2.cvtColor(cv2.fillPoly(warped, points2, (255)), cv2.COLOR_BGR2GRAY)
+            # print(accumulate_mask.shape)
 
 
+
+            # accumulate_mask = cv2.bitwise_or(accumulate_mask, accumulate_mask, mask=mask2)
 
             # self.img1 = cv2.bitwise_and(self.img1, self.img1, mask=mask1)
             warped_mask = cv2.bitwise_and(warped, warped, mask=mask2)
 
-            # cv2.imshow('warped_mask', warped_mask)
+            three_ch_mask2 = cv2.cvtColor(mask2, cv2.COLOR_GRAY2BGR)
 
+            # self.img2[mask2] = (255)
+
+            self.img2 = cv2.subtract(self.img2, three_ch_mask2)
             self.img2 = cv2.add(self.img2, warped_mask)
+
+
+
+            accumulate_warped = cv2.add(accumulate_warped, warped_mask)
+            # accumulate_mask = cv2.add(accumulate_mask, mask2)
+
+
+            # print(self.img2[900, 200])
+            # self.img2 = cv2.circle(self.img2,(600, 200),50, (255), 4)
+            # self.img2 = cv2.circle(self.img2, (600, 200), 5, (0, 0, 255), -1)
+
+            # img_yuv = cv2.cvtColor(self.img2, cv2.COLOR_BGR2YUV)
+            # img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
+            #
+            # self.img2 = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
+            # self.img2 = np.stack((self.img2, warped_mask), axis=0)
             # self.img2 = cv2.addWeighted(warped_mask, 0.9999, self.img2, 0.99, 0)
             # self.img2 = cv2.bitwise_or(self.img2, warped_mask)
 
-            if 90 == key:
+            if 50 == key:
                 pass
                 # break
 
-            # row_1 = [self.img1, self.result, self.img2]
+        mask = 255 * np.ones(self.img2.shape, self.img2.dtype)
+        width, height, channels = self.img2.shape
+        center = (int(height / 2), int(width / 2))
+        mixed_clone = cv2.seamlessClone(self.img2_copy, self.img2, mask, center, cv2.MIXED_CLONE)
 
-            # stacked_image = self.imgStack.stack_images(0.5, (row_1))
-            # cv2.imwrite(os.path.join(self.img_path, str(key)+'.jpg'), stacked_image)
+        # self.img2 = cv2.addWeighted(accumulate_warped, 0.9999, self.img2, 0.0001, 0)
+        # print(warped_mask.shape)
+        # warped_mask_on_dst_image = cv2.bitwise_and(self.img2, self.img2, mask=warped_mask)
 
-        row_1 = [self.img1, self.result, self.img2]
+        row_1 = [self.img1, self.result, self.img2, mixed_clone]
 
         stacked_image = self.imgStack.stack_images(0.5, (row_1))
         # cv2.imwrite(os.path.join(self.img_path, 'result.jpg'), stacked_image)
