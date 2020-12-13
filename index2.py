@@ -3,9 +3,9 @@ from utils.swap import SWAP
 # img1 = 'images/bradley_cooper.jpg'
 # img2 = 'images/jim_carrey.jpg'
 
-img1 = 'images/chris-hems.jpg'
-img2 = 'images/tom-2.jpg'
-# img2 = 'images/tom-cruise-exp.jpg'
+img2 = 'images/lawerence.jpg'
+# img2 = 'images/tom-2.jpg'
+img1 = 'images/jolie-lawrence.jpg'
 
 SWAP.enable_visualization()
 swap = SWAP(img1, img2)
