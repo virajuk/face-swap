@@ -37,7 +37,7 @@ class SWAP:
 
         row_1 = [self.img1, self.img2_copy, self.img2]
 
-        stacked_image = self.imgStack.stack_images(0.5, row_1)
+        stacked_image = self.imgStack.stack_images(0.8, row_1)
         cv2.imshow('Stacked Image', stacked_image)
         cv2.imwrite(os.path.join(self.img_path, 'result.jpg'), stacked_image)
 
